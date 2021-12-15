@@ -1,11 +1,14 @@
 import os
+import json
 
 # needs to be changed when sdk becomes python package
 import sys
-sys.path.insert(0, 'C:/Users/ckoegel/Documents/sdk-generation/OpenAPI Specs/next-gen-sdk-tests/python')
-import bandwidth_python
-from bandwidth_python.api.messages_api import MessagesApi
-from bandwidth_python.model.message_request import MessageRequest
+sys.path.insert(0, 'C:/Users/ckoegel/Documents/sdks/python-v1')
+import openapi_client
+from openapi_client.api.messages_api import MessagesApi
+from openapi_client.model.message_request import MessageRequest
+from openapi_client.model.bandwidth_callback_message import BandwidthCallbackMessage
+from openapi_client.model.bandwidth_message import BandwidthMessage
 # ---------------------------------------------------
 
 from fastapi import FastAPI, Request
@@ -24,13 +27,13 @@ class CreateBody(BaseModel):    # model for the received json body to create a m
     text: str
 
 
-configuration = bandwidth_python.Configuration(     # needs to be updated*********  # Configure HTTP basic authorization: httpBasic
+configuration = openapi_client.Configuration(     # needs to be updated*********  # Configure HTTP basic authorization: httpBasic
     username=BW_USERNAME,
     password=BW_PASSWORD
 )
 
 
-api_client = bandwidth_python.ApiClient(configuration)  # needs to be updated*********
+api_client = openapi_client.ApiClient(configuration)  # needs to be updated*********
 messages_api_instance = MessagesApi(api_client) # needs to be updated*********
 
 
@@ -73,11 +76,10 @@ async def handle_outbound_status(request: Request):
 @app.post('/callbacks/inbound/messaging')
 async def handle_inbound(request: Request):
     inbound_body_array = await request.json()
-    inbound_body = inbound_body_array[0]
-    print(inbound_body['description'])
-    if inbound_body['type'] == "message-received":
-        print("To: {}\nFrom: {}\nText: {}".format(inbound_body['message']['to'][0], inbound_body['message']['from'],
-                                                  inbound_body['message']['text']))
+    inbound_body = BandwidthCallbackMessage(inbound_body_array[0])
+    if inbound_body.type == "message-received":
+        print("To: {}\nFrom: {}\nText: {}".format(inbound_body.message.to[0], inbound_body.message._from,
+                                                  inbound_body.message.text))
     else:
         print("Message type does not match endpoint. This endpoint is used for inbound messages only.\nOutbound message status callbacks should be sent to /callbacks/outbound/messaging/status.")
 
