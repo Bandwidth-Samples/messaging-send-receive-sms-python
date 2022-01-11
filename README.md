@@ -51,10 +51,10 @@ uvicorn main:app --reload   # app will automatically reload upon changes.
 The sample app uses the below environmental variables.
 
 ```sh
-BW_NUMBER                            # The Bandwidth phone number for this application
+BW_ACCOUNT_ID                        # Your Bandwidth Account Id
 BW_USERNAME                          # Your Bandwidth API Username
 BW_PASSWORD                          # Your Bandwidth API Password
-BW_ACCOUNT_ID                        # Your Bandwidth Account Id
+BW_NUMBER                            # The Bandwidth phone number involved with this application
 BW_MESSAGING_APPLICATION_ID          # Your Messaging Application Id created in the dashboard
 ```
 
