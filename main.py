@@ -39,15 +39,15 @@ messages_api_instance = MessagesApi(api_client) # needs to be updated*********
 app = FastAPI()
 
 
-@app.post('/sendMessage')   # Make a POST request to this URL to send a text message.
+@app.post('/sendMessage') # Make a POST request to this URL to send a text message.
 def send_message(create_body: CreateBody):
-    message_body = MessageRequest(  # needs to be updated*********
+    message_body = MessageRequest( # needs to be updated*********
         to=[create_body.to],
         _from=BW_NUMBER,
         application_id=BW_MESSAGING_APPLICATION_ID,
         text=create_body.text
     )
-    response = messages_api_instance.create_message(    # needs to be updated*********
+    response = messages_api_instance.create_message( # needs to be updated*********
         account_id=BW_ACCOUNT_ID,
         message_request=message_body,
         _return_http_data_only=False
@@ -56,7 +56,7 @@ def send_message(create_body: CreateBody):
     return response[1]
 
 
-@app.post('/callbacks/outbound/messaging/status')   # This URL handles outbound message status callbacks.
+@app.post('/callbacks/outbound/messaging/status') # This URL handles outbound message status callbacks.
 async def handle_outbound_status(request: Request):
     status_body_array = await request.json()
     status_body = status_body_array[0]
@@ -72,7 +72,7 @@ async def handle_outbound_status(request: Request):
     return 200
 
 
-@app.post('/callbacks/inbound/messaging')   # This URL handles inbound message callbacks.
+@app.post('/callbacks/inbound/messaging') # This URL handles inbound message callbacks.
 async def handle_inbound(request: Request):
     inbound_body_array = await request.json()
     inbound_body = BandwidthCallbackMessage._new_from_openapi_data(inbound_body_array[0])
