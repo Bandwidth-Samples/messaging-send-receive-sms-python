@@ -14,10 +14,10 @@ from fastapi import FastAPI, Request
 from pydantic import BaseModel
 
 
-BW_NUMBER = os.environ.get('BW_NUMBER')
+BW_ACCOUNT_ID = os.environ.get('BW_ACCOUNT_ID')
 BW_USERNAME = os.environ.get('BW_USERNAME')
 BW_PASSWORD = os.environ.get('BW_PASSWORD')
-BW_ACCOUNT_ID = os.environ.get('BW_ACCOUNT_ID')
+BW_NUMBER = os.environ.get('BW_NUMBER')
 BW_MESSAGING_APPLICATION_ID = os.environ.get('BW_MESSAGING_APPLICATION_ID')
 
 
