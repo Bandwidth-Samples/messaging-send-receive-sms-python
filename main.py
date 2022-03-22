@@ -1,6 +1,6 @@
 import os
 
-# TODO: change this to import the real package
+# TODO: Needs to be changed when the SDK becomes python package.
 import sys
 sys.path.insert(0, 'C:/Users/ckoegel/Documents/sdks/bandwidth_python')
 import bandwidth_python
@@ -25,14 +25,14 @@ class CreateBody(BaseModel):    # model for the received json body to create a m
     text: str
 
 
-configuration = bandwidth_python.Configuration(     # needs to be updated*********  # Configure HTTP basic authorization: httpBasic
+configuration = bandwidth_python.Configuration(     # TODO:  # Configure HTTP basic authorization: httpBasic
     username=BW_USERNAME,
     password=BW_PASSWORD
 )
 
 
-api_client = bandwidth_python.ApiClient(configuration)  # needs to be updated*********
-messages_api_instance = MessagesApi(api_client) # needs to be updated*********
+api_client = bandwidth_python.ApiClient(configuration)  # TODO: package name
+messages_api_instance = MessagesApi(api_client) # TODO: package name
 
 
 app = FastAPI()
@@ -40,13 +40,13 @@ app = FastAPI()
 
 @app.post('/sendMessage') # Make a POST request to this URL to send a text message.
 def send_message(create_body: CreateBody):
-    message_body = MessageRequest( # needs to be updated*********
+    message_body = MessageRequest( # TODO:
         to=[create_body.to],
         _from=BW_NUMBER,
         application_id=BW_MESSAGING_APPLICATION_ID,
         text=create_body.text
     )
-    response = messages_api_instance.create_message( # needs to be updated*********
+    response = messages_api_instance.create_message( # TODO:
         account_id=BW_ACCOUNT_ID,
         message_request=message_body,
         _return_http_data_only=False
