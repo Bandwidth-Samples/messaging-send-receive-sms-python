@@ -7,16 +7,17 @@
 <!-- TOC -->
 
 - [Send and Receive SMS](#send-and-receive-sms)
+- [Table of Contents](#table-of-contents)
 - [Description](#description)
 - [Bandwidth](#bandwidth)
 - [Environmental Variables](#environmental-variables)
 - [Callback URLs](#callback-urls)
-    - [Ngrok](#ngrok)
+  - [Ngrok](#ngrok)
 
 <!-- /TOC -->
 
 # Description
-To start your local server, enter `uvicorn main:app --reload` in your terminal. The app will automatically reload upon changes.
+To start your local server, enter `python3 main.py` in your terminal. The app will automatically reload upon changes.
 To learn about hosting this local server on a web accessible link, visit the [ngrok](#ngrok) section.
 
 Using a tool capable of making POST requests (Postman), send a POST request to the app's endpoint `/callbacks/outbound/messaging` with a json body like:
