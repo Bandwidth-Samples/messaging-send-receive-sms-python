@@ -1,5 +1,6 @@
 import os
 
+import uvicorn
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from bandwidth.bandwidth_client import BandwidthClient
@@ -79,4 +80,4 @@ async def handle_inbound(request: Request):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    uvicorn.run('main:app', host='0.0.0.0', port=5000, reload=True, root_path="/")
