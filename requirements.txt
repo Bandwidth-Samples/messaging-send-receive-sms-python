@@ -1,7 +1,7 @@
 ﻿asgiref==3.4.1
 bandwidth-sdk==13.0.0
 CacheControl==0.12.6
-certifi==2021.5.30
+certifi==2022.12.7
 charset-normalizer==2.0.6
 click==8.0.1
 colorama==0.4.4
