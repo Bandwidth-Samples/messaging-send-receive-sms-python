@@ -13,7 +13,7 @@ try:
     BW_USERNAME = os.environ['BW_USERNAME']
     BW_PASSWORD = os.environ['BW_PASSWORD']
     BW_ACCOUNT_ID = os.environ['BW_ACCOUNT_ID']
-    BW_VOICE_APPLICATION_ID = os.environ['BW_VOICE_APPLICATION_ID']
+    BW_MESSAGING_APPLICATION_ID = os.environ['BW_MESSAGING_APPLICATION_ID']
     BW_NUMBER = os.environ['BW_NUMBER']
     USER_NUMBER = os.environ['USER_NUMBER']
     LOCAL_PORT = int(os.environ['LOCAL_PORT'])
@@ -44,9 +44,9 @@ class CreateMessageRequest(BaseModel):
 @app.post('/messages', status_code=http.HTTPStatus.NO_CONTENT)
 def send_message(data: CreateMessageRequest):
     create_message_request = bandwidth.models.MessageRequest(
-        application_id=BW_VOICE_APPLICATION_ID,
-        to=data.to,
-        from_=BW_NUMBER,
+        application_id=BW_MESSAGING_APPLICATION_ID,
+        to=[data.to],
+        var_from=BW_NUMBER,
         text=data.text,
         tag="Outbound Message"
     )
