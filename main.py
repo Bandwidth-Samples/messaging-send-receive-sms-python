@@ -1,83 +1,92 @@
+import http
 import os
+import sys
 
-import uvicorn
-from fastapi import FastAPI, Request
+import bandwidth
+from bandwidth import ApiException
+from fastapi import FastAPI, Response
 from pydantic import BaseModel
-from bandwidth.bandwidth_client import BandwidthClient
-from bandwidth.messaging.models.message_request import MessageRequest
+from typing import List, Union
+import uvicorn
 
-BW_USERNAME = os.environ.get('BW_USERNAME')
-BW_PASSWORD = os.environ.get('BW_PASSWORD')
-BW_NUMBER = os.environ.get('BW_NUMBER')
-BW_ACCOUNT_ID = os.environ.get('BW_ACCOUNT_ID')
-BW_MESSAGING_APPLICATION_ID = os.environ.get('BW_MESSAGING_APPLICATION_ID')
+try:
+    BW_USERNAME = os.environ['BW_USERNAME']
+    BW_PASSWORD = os.environ['BW_PASSWORD']
+    BW_ACCOUNT_ID = os.environ['BW_ACCOUNT_ID']
+    BW_MESSAGING_APPLICATION_ID = os.environ['BW_MESSAGING_APPLICATION_ID']
+    BW_NUMBER = os.environ['BW_NUMBER']
+    USER_NUMBER = os.environ['USER_NUMBER']
+    LOCAL_PORT = int(os.environ['LOCAL_PORT'])
+    BASE_CALLBACK_URL = os.environ['BASE_CALLBACK_URL']
+except KeyError as e:
+    print(f"Please set the environmental variables defined in the README\n\n{e}")
+    sys.exit(1)
+except ValueError as e:
+    print(f"Please set the LOCAL_PORT environmental variable to an integer\n\n{e}")
+    sys.exit(1)
 
+app = FastAPI()
 
-bandwidth_client = BandwidthClient(
-    messaging_basic_auth_user_name=BW_USERNAME,
-    messaging_basic_auth_password=BW_PASSWORD
+bandwidth_configuration = bandwidth.Configuration(
+    username=BW_USERNAME,
+    password=BW_PASSWORD
 )
-messaging_client = bandwidth_client.messaging_client.client
 
-account_id = BW_ACCOUNT_ID
+bandwidth_api_client = bandwidth.ApiClient(bandwidth_configuration)
+bandwidth_messages_api_instance = bandwidth.MessagesApi(bandwidth_api_client)
 
 
-class CreateBody(BaseModel):
+class CreateMessageRequest(BaseModel):
     to: str
     text: str
 
 
-class InboundBody(BaseModel):
-    type: str
-    description: str
-    message: dict
+@app.post('/messages', status_code=http.HTTPStatus.NO_CONTENT)
+def send_message(data: CreateMessageRequest):
+    create_message_request = bandwidth.models.MessageRequest(
+        application_id=BW_MESSAGING_APPLICATION_ID,
+        to=[data.to],
+        var_from=BW_NUMBER,
+        text=data.text,
+        tag="Outbound Message"
+    )
+
+    try:
+        bandwidth_messages_api_instance.create_message(BW_ACCOUNT_ID, create_message_request)
+        return Response(content=None)
+    except ApiException as e:
+        print(f"Encountered and error while sending message: {e}")
+        return Response(content=None, status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-app = FastAPI()
+@app.post('/callbacks/outbound/messaging', status_code=http.HTTPStatus.NO_CONTENT)
+def handle_outbound_message(
+        data: Union[
+            List[bandwidth.models.MessageSendingCallback],
+            List[bandwidth.models.MessageDeliveredCallback],
+            List[bandwidth.models.MessageFailedCallback]
+        ]):
+    match data[0].type:
+        case "message-sending":
+            print("message-sending type is only for MMS.")
+        case "message-delivered":
+            print("Your message has been handed off to the Bandwidth's MMSC network, but has not been confirmed at the downstream carrier.")
+        case "message-failed":
+            print(f"Your message has failed to be delivered to the downstream carrier. Error Code: {data[0].error_code}")
+            print("For MMS and Group Messages, you will only receive this callback if you have enabled delivery receipts on MMS.")
+        case _:
+            print(f"Unexpected callback received: {data[0].type}")
+            return Response(content=None, status_code=http.HTTPStatus.BAD_REQUEST)
 
 
-@app.post('/callbacks/outbound/messaging')
-def handle_outbound_message(create_body: CreateBody):
-    body = MessageRequest()
-    body.application_id = BW_MESSAGING_APPLICATION_ID
-    body.to = [create_body.to]
-    body.mfrom = BW_NUMBER
-    body.text = create_body.text
+@app.post('/callbacks/inbound/messaging', status_code=http.HTTPStatus.NO_CONTENT)
+def handle_inbound(data: List[bandwidth.models.InboundMessageCallback]):
+    if data[0].type != "message-received":
+        print(f"Unexpected callback received: {data[0].type}")
+        return Response(content=None, status_code=http.HTTPStatus.BAD_REQUEST)
 
-    create_response = messaging_client.create_message(account_id, body=body)
-
-    return create_response.status_code
-
-
-@app.post('/callbacks/outbound/messaging/status')
-async def handle_outbound_status(request: Request):
-    status_body_array = await request.json()
-    status_body = status_body_array[0]
-    if status_body['type'] == "message-sending":
-        print("message-sending type is only for MMS")
-    elif status_body['type'] == "message-delivered":
-        print("your message has been handed off to the Bandwidth's MMSC network, but has not been confirmed at the downstream carrier")
-    elif status_body['type'] == "message-failed":
-        print("For MMS and Group Messages, you will only receive this callback if you have enabled delivery receipts on MMS.")
-    else:
-        print("Message type does not match endpoint. This endpoint is used for message status callbacks only.")
-
-    return 200
-
-
-@app.post('/callbacks/inbound/messaging')
-async def handle_inbound(request: Request):
-    inbound_body_array = await request.json()
-    inbound_body = inbound_body_array[0]
-    print(inbound_body['description'])
-    if inbound_body['type'] == "message-received":
-        print("From: {}\nTo: {}\nText: {}".format(inbound_body['message']['from'], inbound_body['message']['to'][0],
-                                                  inbound_body['message']['text']))
-    else:
-        print("Message type does not match endpoint. This endpoint is used for inbound messages only.\nOutbound message callbacks should be sent to /callbacks/outbound/messaging.")
-
-    return 200
+    print(f"Received message from {data[0].message.from_} with text {data[0].message.text}")
 
 
 if __name__ == '__main__':
-    uvicorn.run('main:app', host='0.0.0.0', port=5000, reload=True, root_path="/")
+    uvicorn.run('main:app', port=LOCAL_PORT, reload=True)
