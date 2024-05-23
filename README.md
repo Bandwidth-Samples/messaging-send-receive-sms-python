@@ -70,7 +70,7 @@ LOCAL_PORT                           # The port number you wish to run the sampl
 For a detailed introduction, check out our [Bandwidth Messaging Callbacks](https://dev.bandwidth.com/docs/messaging/webhooks) page.
 
 Below are the callback paths:
-* `/callbacks/outbound/messaging/status` For Outbound Status Callbacks
+* `/callbacks/outbound/messaging` For Outbound Status Callbacks
 * `/callbacks/inbound/messaging` For Inbound Message Callbacks
 
 ## Ngrok
